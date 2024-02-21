@@ -16,6 +16,33 @@ public class Main {
   private static void runner(String[] args) throws IOException {
     RunParameters runParameters = parseParameters(args);
 
+    String message = prepareMessage(runParameters).toString();
+
+    if (runParameters.getMode().equals("enc")) {
+      runParameters.setData(encode(message, runParameters.getKey()));
+    } else {
+      runParameters.setData(decode(message, runParameters.getKey()));
+    }
+
+    writeMessage(runParameters);
+  }
+
+  private static void writeMessage(RunParameters runParameters) throws IOException {
+    if (runParameters.getOut().isBlank()) {
+      System.out.println(runParameters.getData());
+    } else {
+      Path path = Paths.get(runParameters.getOut());
+      File file = path.toFile();
+      file.createNewFile();
+      try (FileWriter printWriter = new FileWriter(file)) {
+        printWriter.write(runParameters.getData());
+      } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
+      }
+    }
+  }
+
+  private static StringBuilder prepareMessage(RunParameters runParameters) {
     StringBuilder message = new StringBuilder();
 
     if (!runParameters.getIn().isBlank()) {
@@ -33,25 +60,7 @@ public class Main {
     if (!runParameters.getData().isBlank()) {
       message = new StringBuilder(runParameters.getData());
     }
-
-    if (runParameters.getMode().equals("enc")) {
-      runParameters.setData(encode(message.toString(), runParameters.getKey()));
-    } else {
-      runParameters.setData(decode(message.toString(), runParameters.getKey()));
-    }
-
-    if (runParameters.getOut().isBlank()) {
-      System.out.println(runParameters.getData());
-    } else {
-      Path path = Paths.get(runParameters.getOut());
-      File file = path.toFile();
-      file.createNewFile();
-      try (FileWriter printWriter = new FileWriter(file)) {
-        printWriter.write(runParameters.getData());
-      } catch (Exception e) {
-        System.out.println("Error: " + e.getMessage());
-      }
-    }
+    return message;
   }
 
   private static String encode(String message, int offset) {
